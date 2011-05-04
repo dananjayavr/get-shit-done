@@ -20,3 +20,14 @@ Update this variable with the path to your network daemon along with any paramet
 ### $hostsFile
 Update this variable to point to the location of your hosts file. Make sure it is an absolute path.
 
+## .get-shit-done.ini file
+You can add additional websites without altering the program's source code. First create a empty file in the same directory as the get-shit-done script in the following name,
+
+.get-shit-done.ini 
+
+now add the following lines to that file and save it.
+
+[site_list]
+urls=xkcd.com,wired.com
+
+You can add websites to the list in the way shown in the example.
