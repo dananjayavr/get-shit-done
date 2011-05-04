@@ -1,85 +1,68 @@
-#!/usr/bin/php
-<?php
+#!/usr/bin/python
 
-if ( 1 == $argc ) {
-	exitWithError("usage: " . $argv[0] . " [work | play]");
-}
+import sys
+import os
+import subprocess
 
-$whoami = trim(strtolower(`whoami`));
+if len(sys.argv) == 1:
+	print 'usage: ', sys.argv[0], '[work | play]'
+	sys.exit(0)
 
-if ( 'root' != strtolower($whoami) ) {
-	exitWithError("Please run script as root.");
-}
+whoami = subprocess.check_output(['whoami'])
 
-$siteList = array(
-	'reddit.com', 'forums.somethingawful.com', 'somethingawful.com',
-	'digg.com', 'break.com', 'news.ycombinator.com',
-	'infoq.com', 'bebo.com', 'twitter.com',
-	'facebook.com', 'blip.com', 'youtube.com',
-	'vimeo.com', 'delicious.com', 'flickr.com',
-	'friendster.com', 'hi5.com', 'linkedin.com',
-	'livejournal.com', 'meetup.com', 'myspace.com',
-	'plurk.com', 'stickam.com', 'stumbleupon.com',
-	'yelp.com', 'slashdot.com'
-);
+if whoami != 'root\n':
+	print 'Please run the script as root.'
+	sys.exit(0)
 
-$restartNetworkingCommand = '/etc/init.d/networking restart';
-$hostsFile = '/etc/hosts';
-$startToken = '## start-gsd';
-$endToken = '## end-gsd';
+site_list = ['reddit.com','forums.somethingawful.com','somethingawful.com',
+	     'digg.com','break.com','news.ycombinator.com','infoq.com',
+	     'vevo.com','twitter.com','facebook.com','blip.com','youtube.com',
+             'vimeo.com','delicious.com','flickr.com','freindster.com','hi5.com','linkedin.com',
+             'livejournal.com','meetup.com','myspace.com','plurk.com','stickam.com','stumbleupon.com',
+             'yelp.com','slashdot.com']
 
-$action = $argv[1];
+restart_network = '/etc/init.d/networking restart'
+hosts_file = '/etc/hosts'
+start_token = '## start-gsd'
+end_token = '## end-gsd'
 
-switch ( $action ) {
-	case 'work': {
-		$contents = file_get_contents($hostsFile);
-		if($contents && strpos($contents, $startToken) !== false && strpos($contents, $endToken) !== false) {
-			exitWithError("Work mode already set.");        
-		}
-		
-		$fh = fopen($hostsFile, 'a');
-		if ( false === $fh ) {
-			exitWithError("Failed to open the hosts file.");
-		}
-		
-		fwrite($fh, $startToken . PHP_EOL);
-		foreach ( $siteList as $site ) {
-			fwrite($fh, "127.0.0.1\t{$site}" . PHP_EOL);
-			fwrite($fh, "127.0.0.1\twww.{$site}" . PHP_EOL);
-		}
-		fwrite($fh, $endToken . PHP_EOL);
-		
-		fclose($fh);
-		
-		shell_exec($restartNetworkingCommand);
-		
-		break;
-	}
-	
-	case 'play': {
-		$hostContents = file($hostsFile);
-		if ( false === $hostContents ) {
-			exitWithError("Failed to open the hosts file.");
-		}
-		
-		$startIndex = -1;
-		for ( $i=0; $i<count($hostContents); $i++ ) {
-			if ( trim($hostContents[$i]) == $startToken ) {
-				$startIndex = $i;
-			}
-		}
-		
-		if ( $startIndex > -1 ) {
-			$hostContents = array_slice($hostContents, 0, $startIndex);
-			file_put_contents($hostsFile, $hostContents);
-			shell_exec($restartNetworkingCommand);
-		}
-		
-		break;
-	}
-}
+action = sys.argv[1]
 
-function exitWithError($error) {
-	fwrite(STDERR, $error . PHP_EOL);
-	exit(1);
-}
+if action == 'work':
+	try:
+		f_hosts = open(hosts_file)
+		contents = f_hosts.read()
+	except IOError:
+		print 'Failed to open the hosts file'
+	if contents and start_token in contents != False and end_token in contents != False:
+		print 'Work mode already set.'
+		sys.exit(0)
+	try:
+		fh = open(hosts_file,'a')
+		fh.write(start_token)
+		for site in site_list:
+			fh.write('127.0.0.1\t%s\n' % site)
+			fh.write('127.0.0.1\twww.%s\n' % site)
+		fh.write(end_token)
+		fh.close()
+		os.system(restart_network) 
+	except IOError:
+		print 'Failed to open the hosts file.'
+		sys.exit(0)
+if action == 'play':
+	try:
+		f_hosts = open(hosts_file)
+		contents = f_hosts.readlines()
+		f_hosts.close()
+		start_index = 11
+
+		if start_index > -1:
+			f_hosts = open(hosts_file,'w')
+			host_contents = contents[0:11]
+			for line in host_contents:
+				f_hosts.write(line)
+			os.system(restart_network)
+			f_hosts.close()
+			
+	except IOError as e:
+		print 'Failed to open the hosts file.',e
