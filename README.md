@@ -27,7 +27,8 @@ You can add additional websites without altering the program's source code. Firs
 
 now add the following lines to that file and save it.
 
-[site_list]\n
+[site_list]
+
 urls=xkcd.com,wired.com
 
 You can add websites to the list in the way shown in the example.
