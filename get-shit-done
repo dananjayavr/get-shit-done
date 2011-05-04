@@ -3,6 +3,8 @@
 import sys
 import os
 import subprocess
+from ConfigParser import SafeConfigParser
+from heapq import merge
 
 if len(sys.argv) == 1:
 	print 'usage: ', sys.argv[0], '[work | play]'
@@ -21,6 +23,14 @@ site_list = ['reddit.com','forums.somethingawful.com','somethingawful.com',
              'livejournal.com','meetup.com','myspace.com','plurk.com','stickam.com','stumbleupon.com',
              'yelp.com','slashdot.org']
 
+parser = SafeConfigParser()
+try:
+        parser.read('.get-shit-done.ini')
+        user_defined =  parser.get('site_list','urls').split(',')
+except:
+        pass
+
+site_lists = list(merge(site_list,user_defined))
 restart_network = '/etc/init.d/networking restart'
 hosts_file = '/etc/hosts'
 start_token = '## start-gsd'
@@ -40,7 +50,7 @@ if action == 'work':
 	try:
 		fh = open(hosts_file,'a')
 		fh.write(start_token)
-		for site in site_list:
+		for site in site_lists:
 			fh.write('127.0.0.1\t%s\n' % site)
 			fh.write('127.0.0.1\twww.%s\n' % site)
 		fh.write(end_token)
